@@ -1,28 +1,36 @@
+# === Module Imports ===================================================================================================
 from math import ceil
 from os import  path
 from PIL import Image
 from sys import argv
+from typing import List, Tuple
 
 
+# === Constant Definitions =============================================================================================
 DEFAULT_WIDTH = 512
 
 
-def generatePNG(inputEXE: str, outputPNG: str, pngWidth:int = DEFAULT_WIDTH) -> None:
-    exeSize = path.getsize(inputEXE)
-    pngHeight = int(ceil(exeSize / (pngWidth * 3)))
+# === Functions ========================================================================================================
+def generatePNG(inputFile: str, outputPNG: str, pngWidth: int = DEFAULT_WIDTH) -> None:
+    # Convert input file into pixels
+    pngPixels = generatePixelData(inputFile)
+    pngHeight = int(ceil(len(pngPixels) / pngWidth))
+    # Create new PNG image using data from file
     newImage = Image.new("RGB", (pngWidth, pngHeight), color="white")
-    pngPixels = generatePixelData(inputEXE)
     newImage.putdata(pngPixels)
     newImage.save(outputPNG, "PNG")
 
 
-def generatePixelData(inputFile: str) -> []:
+def generatePixelData(inputFile: str) -> List[Tuple[int, int, int]]:
     pixelArray = []
     fileSize = path.getsize(inputFile)
     with open(inputFile, "rb") as exeIn:
+        # Iterate through file to get bytes in groups of 3
         for n in range(0, ceil(fileSize / 3)):
             pixelData = exeIn.read(3)
+            # Convert bytes into tuple of (R, G, B)
             match (len(pixelData)):
+                # 255 substitutes for missing values
                 case 1:
                     pixelData = (pixelData[0], 255, 255)
                 case 2:
@@ -35,5 +43,6 @@ def generatePixelData(inputFile: str) -> []:
     return pixelArray
 
 
+# === Main =============================================================================================================
 if __name__ == "__main__":
     generatePNG(argv[1], argv[2])
