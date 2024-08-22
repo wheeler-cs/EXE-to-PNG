@@ -11,6 +11,27 @@ DEFAULT_WIDTH = 512
 
 
 # === Functions ========================================================================================================
+def generateGrayScalePNG(inputFile: str, outputPNG: str, pngWidth: int = DEFAULT_WIDTH) -> None:
+    pngPixels = generateGrayScalePixelData(inputFile)
+    pngHeight = int(ceil(len(pngPixels) / pngWidth))
+    newImage = Image.new("RGB", (pngWidth, pngHeight), color="black")
+    newImage.putdata(pngPixels)
+    newImage.save(outputPNG, "PNG")
+
+
+def generateGrayScalePixelData(inputFile: str) -> List[int]:
+    pixelArray = []
+    fileSize = path.getsize(inputFile)
+    with open(inputFile, "rb") as exeIn:
+        # Iterate through file to get bytes in groups of 3
+        for n in enumerate(range(0, fileSize)):
+            pixelData = exeIn.read(1)
+            # Convert bytes into tuple of (R, G, B)
+            pixelData = (pixelData[0], pixelData[0], pixelData[0])
+            pixelArray.append(pixelData)
+    return pixelArray
+
+
 def generatePNG(inputFile: str, outputPNG: str, pngWidth: int = DEFAULT_WIDTH) -> None:
     # Convert input file into pixels
     pngPixels = generatePixelData(inputFile)
@@ -45,4 +66,4 @@ def generatePixelData(inputFile: str) -> List[Tuple[int, int, int]]:
 
 # === Main =============================================================================================================
 if __name__ == "__main__":
-    generatePNG(argv[1], argv[2])
+    generateGrayScalePNG(argv[1], argv[2])
