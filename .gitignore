@@ -1,3 +1,7 @@
 # Python stuff that shouldn't be included
-test/
 venv/
+__pycache__/
+
+# Directories for testing
+input/
+output/

@@ -16,7 +16,7 @@ def generateGrayScalePNG(inputFile: str, outputPNG: str, pngWidth: int = DEFAULT
     pngHeight = int(ceil(len(pngPixels) / pngWidth))
     newImage = Image.new("RGB", (pngWidth, pngHeight), color="black")
     newImage.putdata(pngPixels)
-    newImage.save(outputPNG, "PNG")
+    newImage.save(outputPNG + ".png", "PNG")
 
 
 def generateGrayScalePixelData(inputFile: str) -> List[int]:
@@ -39,7 +39,7 @@ def generatePNG(inputFile: str, outputPNG: str, pngWidth: int = DEFAULT_WIDTH) -
     # Create new PNG image using data from file
     newImage = Image.new("RGB", (pngWidth, pngHeight), color="white")
     newImage.putdata(pngPixels)
-    newImage.save(outputPNG, "PNG")
+    newImage.save(outputPNG + ".png", "PNG")
 
 
 def generatePixelData(inputFile: str) -> List[Tuple[int, int, int]]:
