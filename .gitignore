@@ -1,6 +1,7 @@
 # Python stuff that shouldn't be included
 venv/
 __pycache__/
+.idea/
 
 # Directories for testing
 input/
