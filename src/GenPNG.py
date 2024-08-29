@@ -20,31 +20,44 @@ def gen_png_numpy(input_path: str, output_path: str, width: int = DEFAULT_WIDTH,
     :return: None
     """
     file_size: int = path.getsize(input_path)
-    if file_size < width:
-        height: int = 1
-    else:
-        height: int = ceil(file_size / width)
 
     # Read the data as *serial* bytes (uint8)
     data: np.ndarray = np.fromfile(input_path, dtype=np.uint8)
 
-    # Pad the data to resize it
-    pad_amount: int = ((width * height) - file_size)
-    data = np.pad(
-        data,
-        pad_width=(0, pad_amount)
-    )
-
-    # Make it image shaped
-    data = np.reshape(data, (height, width))
-
-    # Use the appropriate mode
     if mode == "RGB":
-        # Stack the data on itself to make the three channels
-        data = np.dstack((data, data, data))
+        if file_size < width:
+            height: int = 1
+        else:
+            height: int = ceil(file_size / width / 3)
+
+        # Pad the data to resize it
+        pad_amount: int = ((width * height * 3) - file_size)
+        data = np.pad(
+            data,
+            pad_width=(0, pad_amount)
+        )
+
+        # Make it image shaped
+        data = np.reshape(data, (height, width, 3))
+
         img = Image.fromarray(data, mode="RGB")
     else:
-        # Or just make it a PIL image
+        if file_size < width:
+            height: int = 1
+        else:
+            height: int = ceil(file_size / width)
+
+        # Pad the data to resize it
+        pad_amount: int = ((width * height) - file_size)
+        data = np.pad(
+            data,
+            pad_width=(0, pad_amount)
+        )
+
+        # Make it image shaped
+        data = np.reshape(data, (height, width))
+
+        # Make it an image
         img = Image.fromarray(data, mode="L")
     img.save(output_path + ".png")
     img.close()

@@ -5,7 +5,7 @@ from typing import List
 
 import GenPNG
 
-
+# RGB or L
 CONVERSION_MODE = "L"
 
 
