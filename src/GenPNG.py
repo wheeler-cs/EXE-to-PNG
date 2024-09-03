@@ -8,15 +8,18 @@ from PIL import Image
 # ==== Constant Definitions ============================================================================================
 DEFAULT_WIDTH = 512
 
+MODE_GRAYSCALE = "L"
+MODE_RGB       = "RGB"
+
 
 # ==== Functions =======================================================================================================
-def gen_png_numpy(input_path: str, output_path: str, width: int = DEFAULT_WIDTH, mode: str = "L") -> None:
+def genPNG(input_path: str, output_path: str, width: int = DEFAULT_WIDTH, mode: str = MODE_GRAYSCALE) -> None:
     """
     Convert an input binary file to a PNG representation.
     :param input_path: The path to the input binary.
     :param output_path: The path to the output.
     :param width: Width of the resulting image.
-    :param mode: Either "L" or "RGB" (RGB just duplicates "L")
+    :param mode: Either MODE_GRAYSCALE or MODE_RGB.
     :return: None
     """
     # Read the data as *serial* bytes (uint8)
@@ -24,7 +27,7 @@ def gen_png_numpy(input_path: str, output_path: str, width: int = DEFAULT_WIDTH,
 
     # Set the bytes required to define a pixel w/i the image
     pixel_width: int = 1
-    if(mode == "RGB"):
+    if(mode == MODE_RGB):
         pixel_width = 3
 
     # Determine image dimensions based on input file size and pixel width
@@ -38,10 +41,10 @@ def gen_png_numpy(input_path: str, output_path: str, width: int = DEFAULT_WIDTH,
     data = np.pad(data, pad_width=(0, pad_amount))
 
     # Reshape array based on pixel width
-    if(mode == "L"):
-        data = np.reshape(data, (height, width))
-    else:
+    if(pixel_width > 1):
         data = np.reshape(data, (height, width, pixel_width))
+    else:
+        data = np.reshape(data, (height, width))
     
     # Generate the image
     img = Image.fromarray(data, mode=mode)

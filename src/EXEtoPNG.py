@@ -1,19 +1,15 @@
 # ==== Module Imports ==================================================================================================
+import argparse
 import os
 import multiprocessing
-import time
 from typing import List
 
 import GenPNG
 
 
-# ==== Constant Definitions ============================================================================================
-# RGB or L
-CONVERSION_MODE = "L"
-
 
 # ==== Functions =======================================================================================================
-def process_list(sub_file_list: List[str], in_dir: str, out_dir: str) -> None:
+def process_list(sub_file_list: List[str], in_dir: str, out_dir: str, width: int, colorMode: str) -> None:
     """
     Process a given list of binary files.
     :param sub_file_list: List of file paths.
@@ -21,50 +17,50 @@ def process_list(sub_file_list: List[str], in_dir: str, out_dir: str) -> None:
     :param out_dir: Output Directory.
     :return: None
     """
-    global CONVERSION_MODE
     for f in sub_file_list:
-        GenPNG.gen_png_numpy(f, f.replace(in_dir, out_dir), mode=CONVERSION_MODE)
+        GenPNG.genPNG(f, f.replace(in_dir, out_dir), width, colorMode)
 
 
 # ==== Main ============================================================================================================
 if __name__ == "__main__":
-    inputDirectory = "input/"
-    outputDirectory = "output/"
+    # Setup command line arguments
+    cliArguments = argparse.ArgumentParser(prog="EXE to PNG", description="Convert .exe files into .png images.")
+    cliArguments.add_argument("inputDir", help="Directory containing executable (.exe) files.")
+    cliArguments.add_argument("outputDir", help="Directory to store output png files.")
+    cliArguments.add_argument("--subprocesses", "-p", default=1, type=int)
+    cliArguments.add_argument("--colorMode", "-c", default=GenPNG.MODE_GRAYSCALE, choices=["L", "RGB"])
+    cliArguments.add_argument("--width", "-w", default=GenPNG.DEFAULT_WIDTH, type=int, help="Width of output images.")
+    arguments = cliArguments.parse_args()
 
-    # Make sure the directories exist
+    # Make sure the given directories exist
+    inputDirectory = arguments.inputDir
+    outputDirectory = arguments.outputDir
     assert os.path.isdir(inputDirectory), f"Input directory `{inputDirectory}` is not a directory"
     assert os.path.isdir(outputDirectory), f"Output directory `{outputDirectory}` is not a directory"
 
-    # Scan them, printing the file count
+    # Get the number of files in the input directory
     file_list = [x.path for x in os.scandir(inputDirectory) if os.path.isfile(x.path)]
-    print("Found a total of " + str(len(file_list)) + " files to convert")
+    print(f"Found {len(file_list)} files to convert")
 
-    # Process initialization
-    num_processes = multiprocessing.cpu_count() // 2    # Don't use all threads to save some memory
-    pool = multiprocessing.Pool(processes=num_processes)
-
-    # Split the work to divide to the threads
-    if len(file_list) > num_processes:
-        split_file_list = [
-            file_list[i:i + num_processes]
-            for i in range(0, len(file_list), num_processes)
-        ]
+    # Initialize threads for parallel execution
+    num_processes = arguments.subprocesses
+    if(num_processes == 1):
+        process_list(file_list, inputDirectory, outputDirectory, arguments.width, arguments.colorMode)
     else:
-        split_file_list = [
-            file_list[i:i + num_processes]
-            for i in range(0, len(file_list), 4)    # The step size can be decreased, but it doesn't matter much
-        ]
+        print(f"Using {num_processes} threads")
 
-    start = time.perf_counter()
+        # Split the work evenly among the threads
+        split_file_list = []
+        for i in range(0, num_processes):
+            split_file_list.append([])
+        for i in range(0, len(file_list)):
+            split_file_list[i % num_processes].append(file_list[i])
 
-    # Add the work to the pool
-    for sub_list in split_file_list:
-        pool.apply_async(process_list, args=(sub_list, inputDirectory, outputDirectory))
+        # Add the work to the pool
+        pool = multiprocessing.Pool(processes=num_processes)
+        for sub_list in split_file_list:
+            pool.apply_async(process_list, args=(sub_list, inputDirectory, outputDirectory, arguments.width, arguments.colorMode))
 
-    # Start, do the work, and wait for results
-    pool.close()
-    pool.join()
-
-    end = time.perf_counter()
-
-    print(f"Conversion time: {end - start:.6f}s")
+        # Start, do the work, and wait for results
+        pool.close()
+        pool.join()
