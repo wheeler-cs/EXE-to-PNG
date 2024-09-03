@@ -1,15 +1,15 @@
-# === Module Imports ===================================================================================================
+# ==== Module Imports ==================================================================================================
 from math import ceil
 import numpy as np
 from os import path
 from PIL import Image
-from sys import argv
 
-# === Constant Definitions =============================================================================================
+
+# ==== Constant Definitions ============================================================================================
 DEFAULT_WIDTH = 512
 
 
-# === Functions ========================================================================================================
+# ==== Functions =======================================================================================================
 def gen_png_numpy(input_path: str, output_path: str, width: int = DEFAULT_WIDTH, mode: str = "L") -> None:
     """
     Convert an input binary file to a PNG representation.
@@ -19,50 +19,37 @@ def gen_png_numpy(input_path: str, output_path: str, width: int = DEFAULT_WIDTH,
     :param mode: Either "L" or "RGB" (RGB just duplicates "L")
     :return: None
     """
-    file_size: int = path.getsize(input_path)
-
     # Read the data as *serial* bytes (uint8)
     data: np.ndarray = np.fromfile(input_path, dtype=np.uint8)
 
-    if mode == "RGB":
-        if file_size < width:
-            height: int = 1
-        else:
-            height: int = ceil(file_size / width / 3)
+    # Set the bytes required to define a pixel w/i the image
+    pixel_width: int = 1
+    if(mode == "RGB"):
+        pixel_width = 3
 
-        # Pad the data to resize it
-        pad_amount: int = ((width * height * 3) - file_size)
-        data = np.pad(
-            data,
-            pad_width=(0, pad_amount)
-        )
+    # Determine image dimensions based on input file size and pixel width
+    file_size: int = path.getsize(input_path)
+    height: int = 1
+    if file_size >= width:
+        height = ceil(file_size / width / pixel_width)
 
-        # Make it image shaped
-        data = np.reshape(data, (height, width, 3))
+    # Pad bits to ensure length of array % pixel_width is 0
+    pad_amount: int = ((width * height * pixel_width) - file_size)
+    data = np.pad(data, pad_width=(0, pad_amount))
 
-        img = Image.fromarray(data, mode="RGB")
-    else:
-        if file_size < width:
-            height: int = 1
-        else:
-            height: int = ceil(file_size / width)
-
-        # Pad the data to resize it
-        pad_amount: int = ((width * height) - file_size)
-        data = np.pad(
-            data,
-            pad_width=(0, pad_amount)
-        )
-
-        # Make it image shaped
+    # Reshape array based on pixel width
+    if(mode == "L"):
         data = np.reshape(data, (height, width))
-
-        # Make it an image
-        img = Image.fromarray(data, mode="L")
+    else:
+        data = np.reshape(data, (height, width, pixel_width))
+    
+    # Generate the image
+    img = Image.fromarray(data, mode=mode)
     img.save(output_path + ".png")
     img.close()
 
 
-# === Main =============================================================================================================
+# ==== Main ============================================================================================================
 if __name__ == "__main__":
-    gen_png_numpy(argv[1], argv[2])
+    print("This module is intended to support the conversion of .exe files to .png.")
+    print("Run EXEtoPNG to convert executables to images.")

@@ -1,3 +1,4 @@
+# ==== Module Imports ==================================================================================================
 import os
 import multiprocessing
 import time
@@ -5,10 +6,13 @@ from typing import List
 
 import GenPNG
 
+
+# ==== Constant Definitions ============================================================================================
 # RGB or L
 CONVERSION_MODE = "L"
 
 
+# ==== Functions =======================================================================================================
 def process_list(sub_file_list: List[str], in_dir: str, out_dir: str) -> None:
     """
     Process a given list of binary files.
@@ -22,6 +26,7 @@ def process_list(sub_file_list: List[str], in_dir: str, out_dir: str) -> None:
         GenPNG.gen_png_numpy(f, f.replace(in_dir, out_dir), mode=CONVERSION_MODE)
 
 
+# ==== Main ============================================================================================================
 if __name__ == "__main__":
     inputDirectory = "input/"
     outputDirectory = "output/"
